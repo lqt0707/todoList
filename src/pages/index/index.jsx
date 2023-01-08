@@ -1,18 +1,27 @@
 import { Component } from "react";
-import { View, Text, Input } from "@tarojs/components";
+import { View, Input, Text } from "@tarojs/components";
+import { connect } from "@tarojs/redux";
 import "./index.scss";
+import { add, del } from "../../actions/index";
 
-export default class Index extends Component {
-  config = {
-    navigationBarTitleText: "首页12",
-  };
-
+@connect(
+  ({ todos }) => ({
+    todos: todos.todos,
+  }),
+  (dispatch) => ({
+    add(data) {
+      dispatch(add(data));
+    },
+    del(id) {
+      dispatch(del(id));
+    },
+  })
+)
+class Index extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      // 创建一个初始的 Todolist
-      list: ["get up", "coding", "sleep"],
-      inputVal: "",
+      newTodo: "",
     };
   }
 
@@ -26,60 +35,62 @@ export default class Index extends Component {
 
   componentDidHide() {}
 
-  addItem() {
-    let { list, inputVal } = this.state;
-    if (!inputVal) return;
-    else list.push(inputVal);
+  saveNewTodo(e) {
+    let { newTodo } = this.state;
+    if (!e.detail.value || e.detail.value === newTodo) return;
+
     this.setState({
-      list,
-      inputVal: "",
+      newTodo: e.detail.value,
     });
   }
 
-  delItem(index) {
-    let { list } = this.state;
-    list.splice(index, 1);
+  addTodo() {
+    let { newTodo } = this.state;
+    let { add } = this.props;
+
+    if (!newTodo) return;
+
+    add(newTodo);
     this.setState({
-      list,
+      newTodo: "",
     });
   }
 
-  inputHandler(e) {
-    this.setState({
-      inputVal: e.target.value,
-    });
-    // this.state.inputVal = e.target.value;
+  delTodo(id) {
+    let { del } = this.props;
+    del(id);
   }
 
   render() {
-    let { list, inputVal } = this.state;
-    return (
-      <View className="index">
-        <Input
-          className="input"
-          type="text"
-          value={inputVal}
-          onInput={this.inputHandler.bind(this)}
-        />
-        <Text className="add" onClick={this.addItem.bind(this)}>
-          添加
-        </Text>
-        <View className="list_wrap">
-          <Text>Todo list</Text>
-          {list.map((item, index) => {
-            return (
-              <View>
-                <Text>
-                  {index + 1}.{item}
-                </Text>
-                <Text className="del" onClick={this.delItem.bind(this, index)}>
-                  删除
-                </Text>
-              </View>
-            );
-          })}
+    let { newTodo } = this.state;
+    let { todos, add, del } = this.props;
+
+    const todoJsx = todos.map((todo) => {
+      return (
+        <View className="todos_item">
+          <Text>{todo.text}</Text>
+          <View className="del" onClick={this.delTodo.bind(this, todo.id)}>
+            -
+          </View>
         </View>
+      );
+    });
+
+    return (
+      <View className="index todos">
+        <View className="add_wrap">
+          <Input
+            placeholder="填写新的todo"
+            value={newTodo}
+            onBlur={this.saveNewTodo.bind(this)}
+          />
+          <Text className="add" onClick={this.addTodo.bind(this)}>
+            添加
+          </Text>
+        </View>
+        <View>{todoJsx}</View>
       </View>
     );
   }
 }
+export default Index;
