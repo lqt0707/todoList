@@ -1,6 +1,6 @@
 import { Component } from "react";
 import { View, Input, Text } from "@tarojs/components";
-import { connect } from "@tarojs/redux";
+import { connect } from 'react-redux'
 import "./index.scss";
 import { add, del } from "../../actions/index";
 
